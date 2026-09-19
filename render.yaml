@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: aestheticview-portal
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: audit-data
+      mountPath: /data
+      sizeGB: 1
