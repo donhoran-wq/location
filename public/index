@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AestheticView — Clinical Portal</title>
+<style>
+  :root{ --teal:#0e7c7b; --teal-d:#0a5e5d; --bg:#f3f6f8; --card:#fff; --ink:#1a2b33; --muted:#64748b; --line:#e2e8f0; --radius:14px; --danger:#b42318; }
+  *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800} .brand-badge{width:34px;height:34px;border-radius:10px;background:var(--teal);color:#fff;display:grid;place-items:center}
+  main{max-width:1100px;margin:0 auto;padding:28px 20px 20px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .card-body{padding:18px} .muted{color:var(--muted);font-size:14px} .badge-ai{font-size:11px;font-weight:800;background:#fef3c7;color:#92400e;padding:4px 8px;border-radius:6px}
+  .ba-wrap{position:relative;aspect-ratio:4/3;overflow:hidden;background:#000} .ba-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .ba-after{clip-path:inset(0 0 0 var(--pos,50%))} input[type=range]{width:100%;accent-color:var(--teal)}
+  .overlay{position:fixed;inset:0;background:rgba(15,35,40,.62);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px;z-index:50}
+  [hidden]{display:none!important} .modal{background:#fff;max-width:520px;width:100%;border-radius:18px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .modal h2{margin:0 0 10px} .modal p{line-height:1.6;color:#334155}
+  .btn{width:100%;padding:13px;border-radius:10px;border:0;font-weight:700;font-size:15px;cursor:pointer;margin-top:10px}
+  .btn-primary{background:var(--teal);color:#fff} .btn-primary:hover{background:var(--teal-d)} .btn-secondary{background:#f1f5f9;color:#334155}
+  .audit-note{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;color:#334155;line-height:1.5}
+  .error-box{background:#fef2f2;border:1px solid #fecaca;color:var(--danger);padding:10px;border-radius:10px;font-size:14px;margin-top:10px}
+  #staffPanel{max-width:1100px;margin:0 auto 60px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px}
+  table{border-collapse:collapse;width:100%;font-size:13px} th,td{border:1px solid #e2e8f0;padding:8px;text-align:left} th{background:#f8fafc}
+  input.txt{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px}
+  footer{max-width:1100px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="brand-badge">AV</div> AestheticView Clinical Portal</div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div id="accessPill" style="font-size:13px">🔒 Locked</div>
+    <button id="staffBtn" class="btn btn-secondary" style="width:auto;margin:0;padding:8px 16px">Staff Login</button>
+  </div>
+</header>
+
+<main id="appContent" inert aria-hidden="true" style="filter:blur(8px);pointer-events:none;user-select:none;">
+  <h1>Patient Before & After Gallery</h1>
+  <p class="muted">All images are <strong>AI-generated simulations for demo only</strong>. No real PHI. Drag slider to compare.</p>
+  <div class="grid">
+    <article class="card">
+      <div class="ba-wrap" style="--pos:50%"><img src="https://picsum.photos/seed/nose-before/800/600" alt="Simulated before"><img class="ba-after" src="https://picsum.photos/seed/nose-after/800/600" style="filter:brightness(1.05)" alt="Simulated after"></div>
+      <div class="card-body"><span class="badge-ai">AI SIMULATED</span><h3>Rhinoplasty — Concept</h3><label>Compare <input type="range" min="0" max="100" value="50"></label></div>
+    </article>
+    <article class="card">
+      <div class="ba-wrap" style="--pos:50%"><img src="https://picsum.photos/seed/face-before/800/600" alt="Simulated before"><img class="ba-after" src="https://picsum.photos/seed/face-after/800/600" style="filter:brightness(1.08)" alt="Simulated after"></div>
+      <div class="card-body"><span class="badge-ai">AI SIMULATED</span><h3>Facelift — Concept</h3><label>Compare <input type="range" min="0" max="100" value="50"></label></div>
+    </article>
+    <article class="card">
+      <div class="ba-wrap" style="--pos:50%"><img src="https://picsum.photos/seed/body-before/800/600" alt="Simulated before"><img class="ba-after" src="https://picsum.photos/seed/body-after/800/600" style="filter:contrast(1.08)" alt="Simulated after"></div>
+      <div class="card-body"><span class="badge-ai">AI SIMULATED</span><h3>Abdominoplasty — Concept</h3><label>Compare <input type="range" min="0" max="100" value="50"></label></div>
+    </article>
+  </div>
+</main>
+
+<section id="staffPanel" hidden>
+  <h2>Staff Audit Viewer</h2>
+  <p class="muted">Restricted. All staff views are logged. Do not share precise lat/lng. Retention 90 days.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button id="loadLogsBtn" class="btn btn-primary" style="max-width:200px">Load Logs</button>
+    <button id="exportCsvBtn" class="btn btn-secondary" style="max-width:200px">Export CSV</button>
+    <button id="staffLogoutBtn" class="btn btn-secondary" style="max-width:200px">Logout</button>
+  </div>
+  <div style="overflow:auto;margin-top:12px"><table id="logTable"></table></div>
+</section>
+
+<footer>Privacy Notice: Location is collected only after you click Verify, for access audit/security, stored privately, never sold, auto-deleted after 90 days. Requires HTTPS.</footer>
+
+<!-- STEP 1 MODAL: NO geolocation on page load -->
+<div class="overlay" id="verifyOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="vTitle">
+    <h2 id="vTitle">Location Consent & Access Audit Notice</h2>
+    <p>We request your location to create an access audit record for viewing clinical demo photos.</p>
+    <div class="audit-note"><strong>If you click Verify, we will log:</strong><br>• Timestamp, lat/lng + accuracy, inside/outside Florida flag<br>• IP (added by server), user-agent, language, screen size<br>Stored privately for audit, 90-day retention.<br><br>Clicking Verify = consent. Declining = photos stay hidden.</div>
+    <button class="btn btn-primary" id="verifyBtn">Verify My Location</button>
+    <button class="btn btn-secondary" id="cancelBtn">Cancel / Exit</button>
+    <div id="verifyStatus" class="muted" aria-live="polite" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<div class="overlay" id="blockedOverlay" hidden>
+  <div class="modal" role="alertdialog" aria-modal="true">
+    <h2>Access Blocked</h2>
+    <p id="blockedMsg">Location permission denied. Patient photos cannot be displayed without verifying your location inside Florida.</p>
+    <div class="error-box" id="blockedDetail" hidden></div>
+    <button class="btn btn-primary" id="retryBtn">Retry Location Check</button>
+  </div>
+</div>
+
+<div class="overlay" id="staffOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2>Staff Access</h2>
+    <p class="muted">Restricted audit viewer. Attempts are rate-limited and logged.</p>
+    <label>Username<br><input id="staffUser" class="txt" autocomplete="username"></label><br><br>
+    <label>Password<br><input id="staffPass" type="password" class="txt" autocomplete="current-password"></label>
+    <p id="staffErr" style="color:#b42318"></p>
+    <button class="btn btn-primary" id="staffLoginBtn">Log In</button>
+    <button class="btn btn-secondary" id="staffCloseBtn">Close</button>
+  </div>
+</div>
+
+<script>
+// Florida geofence - FOR AUDIT FLAG ONLY, not to block
+const FL_BBOX = { minLat:24.3963, maxLat:31.1000, minLng:-87.6349, maxLng:-79.9743 };
+function isInsideFlorida(lat,lng){
+  return lat>=FL_BBOX.minLat && lat<=FL_BBOX.maxLat && lng>=FL_BBOX.minLng && lng<=FL_BBOX.maxLng;
+}
+
+const verifyBtn=document.getElementById('verifyBtn');
+verifyBtn.addEventListener('click', requestLocation); // ONLY call site - never on load
+document.getElementById('retryBtn').addEventListener('click',()=>{document.getElementById('blockedOverlay').hidden=true; requestLocation();});
+document.getElementById('cancelBtn').addEventListener('click',()=>showBlocked("Location permission denied. Patient photos cannot be displayed without verifying your location inside Florida.","User cancelled."));
+
+function requestLocation(){
+  if(!('geolocation' in navigator)) return showBlocked("Location permission denied. Patient photos cannot be displayed without verifying your location inside Florida.","Geolocation not supported.");
+  document.getElementById('verifyStatus').textContent="Requesting location… please choose Allow.";
+  verifyBtn.disabled=true;
+  navigator.geolocation.getCurrentPosition(onSuccess,onError,{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+}
+
+async function onSuccess(pos){
+  verifyBtn.disabled=false;
+  const {latitude:lat,longitude:lng,accuracy}=pos.coords;
+  const inside=isInsideFlorida(lat,lng);
+  // PRODUCTION: POST to backend for server-side verification + audit before serving image URLs
+  // fetch('/api/verify-location',{method:'POST',...}) -> return signed URLs only after logging
+  await sendAuditLog({timestamp:new Date().toISOString(),lat,lng,accuracy,insideFlorida:inside,userAgent:navigator.userAgent,language:navigator.language,platform:navigator.platform,screen:`${screen.width}x${screen.height}`,consent:"granted-verify-click"});
+  unlockApp(inside);
+}
+function onError(err){
+  verifyBtn.disabled=false; document.getElementById('verifyStatus').textContent="";
+  let d=err.code===1?"Permission denied/dismissed (code 1).":err.code===2?"Position unavailable (code 2).":"Timeout after 10s (code 3).";
+  showBlocked("Location permission denied. Patient photos cannot be displayed without verifying your location inside Florida.",d);
+  sendAuditLog({timestamp:new Date().toISOString(),consent:"denied",error:d,userAgent:navigator.userAgent});
+}
+async function sendAuditLog(p){
+  try{ await fetch('/api/audit-log',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(p)}); }
+  catch(e){ console.log("audit fallback",p); let a=JSON.parse(localStorage.getItem('audit_logs')||'[]'); a.push(p); localStorage.setItem('audit_logs',JSON.stringify(a)); }
+}
+function showBlocked(msg,detail){
+  document.getElementById('verifyOverlay').hidden=true; document.getElementById('blockedOverlay').hidden=false;
+  document.getElementById('blockedMsg').textContent=msg;
+  const el=document.getElementById('blockedDetail'); if(detail){el.hidden=false; el.textContent=detail;} else el.hidden=true;
+}
+function unlockApp(inside){
+  document.getElementById('verifyOverlay').hidden=true; document.getElementById('blockedOverlay').hidden=true;
+  const app=document.getElementById('appContent'); app.removeAttribute('inert'); app.style.filter="none"; app.style.pointerEvents="auto"; app.style.userSelect="auto";
+  document.getElementById('accessPill').textContent=inside?"✅ Verified — Florida (logged)":"✅ Verified — Outside FL (logged)";
+}
+document.querySelectorAll('.card').forEach(c=>{const r=c.querySelector('input[type=range]');const w=c.querySelector('.ba-wrap');r.addEventListener('input',e=>w.style.setProperty('--pos',e.target.value+'%'));});
+
+// Staff auth - password NEVER checked here, only backend
+const staffOverlay=document.getElementById('staffOverlay');
+document.getElementById('staffBtn').onclick=()=>staffOverlay.hidden=false;
+document.getElementById('staffCloseBtn').onclick=()=>staffOverlay.hidden=true;
+document.getElementById('staffLoginBtn').onclick=async()=>{
+  const username=document.getElementById('staffUser').value.trim(); const password=document.getElementById('staffPass').value;
+  document.getElementById('staffPass').value='';
+  const res=await fetch('/api/staff-login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({username,password})});
+  if(res.ok){staffOverlay.hidden=true; document.getElementById('staffPanel').hidden=false; loadLogs();}
+  else document.getElementById('staffErr').textContent='Invalid login. Attempt logged.';
+};
+async function loadLogs(){
+  const res=await fetch('/api/audit-logs',{credentials:'include'}); if(res.status===401) return alert('Not authed');
+  const logs=await res.json();
+  document.getElementById('logTable').innerHTML='<tr><th>timestamp</th><th>lat</th><th>lng</th><th>acc</th><th>inFL</th><th>ip</th><th>ua</th></tr>'+logs.map(l=>`<tr><td>${l.timestamp||''}</td><td>${l.lat??''}</td><td>${l.lng??''}</td><td>${l.accuracy??''}</td><td>${l.insideFlorida??''}</td><td>${l.ip??''}</td><td>${String(l.userAgent||'').slice(0,60)}</td></tr>`).join('');
+}
+document.getElementById('loadLogsBtn').onclick=loadLogs;
+document.getElementById('exportCsvBtn').onclick=()=>{window.location='/api/audit-export';};
+document.getElementById('staffLogoutBtn').onclick=async()=>{await fetch('/api/staff-logout',{method:'POST',credentials:'include'}); location.reload();};
+fetch('/api/me',{credentials:'include'}).then(r=>r.json()).then(d=>{if(d.authed) document.getElementById('staffPanel').hidden=false;}).catch(()=>{});
+</script>
+</body>
+</html>
