@@ -1,3 +1,5 @@
+import { Resend } from 'resend';
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 import express from 'express';
 import session from 'express-session';
 import rateLimit from 'express-rate-limit';
@@ -33,12 +35,24 @@ app.post('/api/staff-logout',(req,res)=>req.session.destroy(()=>res.json({ok:tru
 app.get('/api/me',(req,res)=>res.json({authed:!!req.session.staff}));
 const requireStaff=(req,res,next)=>req.session.staff?next():res.status(401).end();
 
-app.post('/api/audit-log',(req,res)=>{
+app.post('/api/audit-log', async (req,res)=>{
   const {timestamp,lat,lng,accuracy,insideFlorida,userAgent,language}=req.body;
   const ip=(req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || '').slice(0,45);
   const clean=s=>String(s||'').replace(/"/g,'').slice(0,300);
-  fs.appendFileSync(CSV_PATH, `"${clean(timestamp)}","${lat??''}","${lng??''}","${accuracy??''}","${insideFlorida??''}","${clean(ip)}","${clean(userAgent)}","${clean(language)}"\n`);
+  try { fs.appendFileSync(CSV_PATH, `"${clean(timestamp)}","${lat??''}","${lng??''}","${accuracy??''}","${insideFlorida??''}","${clean(ip)}","${clean(userAgent)}","${clean(language)}"\n`); } catch(e){}
+
+  if(resend && process.env.EMAIL_TO){
+    try {
+      await resend.emails.send({
+        from: 'AestheticView <onboarding@resend.dev>',
+        to: process.env.EMAIL_TO,
+        subject: `New portal visit - Inside FL: ${insideFlorida}`,
+        text: `New visit at ${timestamp}\nInside Florida: ${insideFlorida}\nAccuracy: ${accuracy}m\nIP: ${ip}\n\nLog in as staff to view full audit. Precise GPS is NOT emailed for privacy.`
+      });
+    } catch(e){ console.log('email failed:', e.message); }
+  }
   res.json({ok:true});
+});
 });
 app.get('/api/audit-logs',requireStaff,(req,res)=>{
   if(!fs.existsSync(CSV_PATH)) return res.json([]);
