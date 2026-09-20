@@ -4,7 +4,6 @@ import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Resend } from 'resend';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +12,6 @@ const app = express();
 app.set('trust proxy', 1);
 app.use(express.json());
 
-// Serve frontend - checks both public/index.html and index.html
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
@@ -24,11 +22,9 @@ app.use(session({
   cookie: { httpOnly: true, secure: true, sameSite: 'lax', maxAge: 30*60*1000 }
 }));
 
-// Email setup - does not crash if key missing
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const EMAIL_TO = process.env.EMAIL_TO || 'donny13@gmail.com';
 
-// CSV - temporary on free Render, export often
 const CSV_PATH = './data/audit_log.csv';
 try {
   fs.mkdirSync('./data', { recursive: true });
@@ -60,15 +56,24 @@ app.post('/api/audit-log', async (req, res) => {
     fs.appendFileSync(CSV_PATH, `"${clean(timestamp)}","${lat ?? ''}","${lng ?? ''}","${accuracy ?? ''}","${insideFlorida ?? ''}","${clean(ip)}","${clean(userAgent)}","${clean(language)}"\n`);
   } catch(e){ console.log('csv write fail', e.message); }
 
-  // Email alert - NO precise lat/lng in email for privacy
-  if (resend) {
+  // Email alert via Resend API directly - no library needed, no precise lat/lng in email
+  if (RESEND_API_KEY) {
     try {
-      await resend.emails.send({
-        from: 'AestheticView <onboarding@resend.dev>',
-        to: EMAIL_TO,
-        subject: `New portal visit - Inside FL: ${insideFlorida}`,
-        text: `New visit at ${timestamp}\nInside Florida: ${insideFlorida}\nAccuracy: ${accuracy}m\nIP: ${ip}\n\nLog in as staff to view full audit. Precise GPS is NOT emailed.`
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'AestheticView <onboarding@resend.dev>',
+          to: EMAIL_TO,
+          subject: `New portal visit - Inside FL: ${insideFlorida}`,
+          text: `New visit at ${timestamp}\nInside Florida: ${insideFlorida}\nAccuracy: ${accuracy}m\nIP: ${ip}\n\nLog in as staff to view full audit. Precise GPS is NOT emailed.`
+        })
       });
+      if (!r.ok) console.log('email failed:', await r.text());
+      else console.log('email sent to', EMAIL_TO);
     } catch(e){ console.log('email failed:', e.message); }
   } else {
     console.log('no RESEND_API_KEY, skipping email');
